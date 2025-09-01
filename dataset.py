@@ -79,8 +79,9 @@ class LiTS(Dataset):
         target = sitk.GetArrayFromImage(target)
         clamped_image = sitk.GetArrayFromImage(clamped_image)
         if self.liver_mask:
-            target[target == 1] = 0
-            target[target == 2] = 1
+            # target[target == 1] = 0
+            # target[target == 2] = 1
+            target[target == 2] = 0
         else:
             target[target == 2] = 1
         target = target.astype(np.float32)
