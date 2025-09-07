@@ -93,4 +93,7 @@ class LiTS(Dataset):
             target = target.transpose(1, 2, 0)
             target = self.target_transform(target)
         target = (target > 0).float()
-        return clamped_image.float(), target
+        if self.liver_mask:
+            return clamped_image.float(), target, liver_mask
+        else:   
+            return clamped_image.float(), target

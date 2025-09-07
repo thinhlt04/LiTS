@@ -41,9 +41,9 @@ def iou(pred_mask, true_mask):
 def compute_scores(predicted_masks: list, masks: list) -> dict:
     metrics = {
         "iou": iou,
-        "dice": dice,
-        "voe": voe,
-        "rvd": rvd
+        "dice": dice
+        # "voe": voe,
+        # "rvd": rvd
     }
     scores = {metric_name: [] for metric_name in metrics}
     
