@@ -73,8 +73,10 @@ if __name__ == '__main__':
             
         prediction = (pred > 0.5).long().cpu().numpy()
         mask = mask.cpu().numpy()
-        tumor_pred = liver_mask^pred
-        tumor_mask = liver_mask^mask
+        # tumor_pred = liver_mask^pred
+        # tumor_mask = liver_mask^mask
+        tumor_pred = liver_mask.long() ^ (pred > 0.5).long()
+        tumor_mask = liver_mask.long() ^ mask.long()
 
         all_predictions.extend(prediction)
         all_masks.extend(mask)
