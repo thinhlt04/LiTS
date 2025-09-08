@@ -66,6 +66,7 @@ if __name__ == '__main__':
         image, mask, liver_mask = batch
         image = image.to(device)
         mask = mask.to(device)
+        liver_mask = liver_mask.to(device)
         
         with torch.no_grad():
             pred = model(image)

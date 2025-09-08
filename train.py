@@ -124,7 +124,7 @@ if __name__ == "__main__":
         all_masks = []
 
         for batch in dev_loader:
-            image, mask = batch
+            image, mask, liver_mask = batch
             image = image.to(device)
             mask = mask.to(device)
 
