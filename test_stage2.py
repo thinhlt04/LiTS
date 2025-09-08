@@ -71,17 +71,22 @@ if __name__ == '__main__':
         with torch.no_grad():
             pred = model(image)
             
-        prediction = (pred > 0.5).long().cpu().numpy()
-        mask = mask.cpu().numpy()
-        # tumor_pred = liver_mask^pred
-        # tumor_mask = liver_mask^mask
-        tumor_pred = liver_mask.long() ^ (pred > 0.5).long()
-        tumor_mask = liver_mask.long() ^ mask.long()
-
+        pred_bin = (pred > 0.5).long()
+        mask_bin = mask.long()
+        liver_mask_bin = liver_mask.long()
+        
+        tumor_pred = liver_mask_bin ^ pred_bin
+        tumor_mask = liver_mask_bin ^ mask_bin
+        
+        prediction = pred_bin.cpu().numpy()
+        mask_np = mask_bin.cpu().numpy()
+        tumor_pred_np = tumor_pred.cpu().numpy()
+        tumor_mask_np = tumor_mask.cpu().numpy()
+        
         all_predictions.extend(prediction)
-        all_masks.extend(mask)
-        all_tumor_preds.extend(tumor_pred.cpu().numpy())
-        all_tumor_masks.extend(tumor_mask.cpu().numpy())
+        all_masks.extend(mask_np)
+        all_tumor_preds.extend(tumor_pred_np)
+        all_tumor_masks.extend(tumor_mask_np)
 
     scores = compute_scores(all_predictions, all_masks)
     scores_stage2 = compute_scores(all_tumor_preds, all_tumor_masks)
