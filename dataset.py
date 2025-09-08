@@ -75,6 +75,7 @@ class LiTS(Dataset):
             liver_mask = sitk.ReadImage(self.liver_masks[idx])
             clamped_image = sitk.Mask(clamped_image, liver_mask, outsideValue=-1024)
             target = sitk.Mask(target, liver_mask, outsideValue=0)
+            liver_mask = sitk.GetArrayFromImage(liver_mask)
 
         target = sitk.GetArrayFromImage(target)
         clamped_image = sitk.GetArrayFromImage(clamped_image)
