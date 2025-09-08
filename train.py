@@ -99,7 +99,7 @@ if __name__ == "__main__":
     for epoch in range(start_epoch, args.epochs):
         model.train()
         process_bar = tqdm(train_loader, colour="cyan")
-        for iter, (images, masks) in enumerate(process_bar):
+        for iter, (images, masks, liver_mask) in enumerate(process_bar):
             if torch.cuda.is_available():
                 images = images.to(device)
                 masks = masks.to(device)
