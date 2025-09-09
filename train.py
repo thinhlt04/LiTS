@@ -106,9 +106,8 @@ if __name__ == "__main__":
 
             # forward
             outputs = model(images)
-            dice_weight = 2.0 - args.bce_weight
             loss_value = bce_dice_loss(
-                outputs, masks, bce_weight=args.bce_weight, dice_weight=dice_weight
+                outputs, masks, bce_weight=args.bce_weight, dice_weight=args.dice_weight
             )
             process_bar.set_description(
                 f"Epochs {epoch + 1}/{args.epochs}. Iteration {iter + 1}/{num_iters}. Loss {loss_value:.3f}"
