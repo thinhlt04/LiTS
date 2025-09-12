@@ -7,6 +7,9 @@ from utils import *
 import os
 import shutil
 import json
+import cv2
+import numpy as np  
+from tqdm import tqdm
 
 def get_args():
     parser = ArgumentParser(description='train unet')
@@ -62,7 +65,9 @@ if __name__ == '__main__':
     all_tumor_masks = []
     all_tumor_preds = []
 
-    for batch in test_loader:
+    kernel = np.ones((3,3), np.uint8)
+
+    for batch in tqdm(test_loader, desc="Testing", unit="batch"):
         image, mask, liver_mask = batch
         image = image.to(device)
         mask = mask.to(device)
@@ -83,9 +88,18 @@ if __name__ == '__main__':
         tumor_pred_np = tumor_pred.cpu().numpy()
         tumor_mask_np = tumor_mask.cpu().numpy()
         
+        batch_opening = []
+        for i in range(tumor_pred.shape[0]):  
+            pred_i = tumor_pred[i, 0]  
+            opening_i = cv2.morphologyEx(pred_i.astype(np.uint8), cv2.MORPH_OPEN, kernel)
+            batch_opening.append(opening_i)
+
+        batch_opening = np.array(batch_opening)           
+        batch_opening = np.expand_dims(batch_opening, 1)
+
         all_predictions.extend(prediction)
         all_masks.extend(mask_np)
-        all_tumor_preds.extend(tumor_pred_np)
+        all_tumor_preds.extend(batch_opening)
         all_tumor_masks.extend(tumor_mask_np)
 
     scores = compute_scores(all_predictions, all_masks)

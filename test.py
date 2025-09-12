@@ -63,8 +63,6 @@ if __name__ == '__main__':
     all_predictions = []
     all_masks = []
 
-    kernel = np.ones((3,3), np.uint8)
-
     for batch in tqdm(test_loader, desc="Testing", unit="batch"):
         image, mask = batch
         image = image.to(device)
@@ -75,16 +73,8 @@ if __name__ == '__main__':
             
         prediction = (pred > 0.5).long().cpu().numpy()
         mask = mask.cpu().numpy()
-        batch_opening = []
-        for i in range(prediction.shape[0]):  
-            pred_i = prediction[i, 0]  
-            opening_i = cv2.morphologyEx(pred_i.astype(np.uint8), cv2.MORPH_OPEN, kernel)
-            batch_opening.append(opening_i)
 
-        batch_opening = np.array(batch_opening)           
-        batch_opening = np.expand_dims(batch_opening, 1) 
-
-        all_predictions.extend(batch_opening)
+        all_predictions.extend(prediction)
         all_masks.extend(mask)
 
     scores = compute_scores(all_predictions, all_masks)
