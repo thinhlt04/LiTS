@@ -91,7 +91,7 @@ if __name__ == '__main__':
         batch_opening = []
         for i in range(tumor_pred_np.shape[0]):  
             pred_i = tumor_pred_np[i, 0]  
-            opening_i = cv2.morphologyEx(tumor_pred_np.astype(np.uint8), cv2.MORPH_OPEN, kernel)
+            opening_i = cv2.morphologyEx(pred_i.astype(np.uint8), cv2.MORPH_OPEN, kernel)
             batch_opening.append(opening_i)
 
         batch_opening = np.array(batch_opening)           
