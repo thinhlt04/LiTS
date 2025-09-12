@@ -99,7 +99,7 @@ if __name__ == '__main__':
 
         all_predictions.extend(prediction)
         all_masks.extend(mask_np)
-        all_tumor_preds.extend(tumor_pred_np)
+        all_tumor_preds.extend(batch_opening)
         all_tumor_masks.extend(tumor_mask_np)
 
     scores = compute_scores(all_predictions, all_masks)
