@@ -85,7 +85,7 @@ if __name__ == '__main__':
         all_predictions.extend(prediction)
         all_masks.extend(mask)
 
-    scores = compute_scores(all_predictions, all_masks)
+    scores = compute_scores(batch_opening, all_masks)
     output_file = os.path.join(args.json_dir, f"scores_bce_{args.bce_weight}.json")
     with open(output_file, 'w') as f:
         json.dump(scores, f)
