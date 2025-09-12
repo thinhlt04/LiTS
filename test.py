@@ -7,6 +7,7 @@ from utils import *
 import os
 import shutil
 import json
+import cv2
 
 def get_args():
     parser = ArgumentParser(description='train unet')
@@ -60,6 +61,8 @@ if __name__ == '__main__':
     all_predictions = []
     all_masks = []
 
+    kernel = np.ones((3,3), np.uint8)
+
     for batch in test_loader:
         image, mask = batch
         image = image.to(device)
@@ -70,6 +73,14 @@ if __name__ == '__main__':
             
         prediction = (pred > 0.5).long().cpu().numpy()
         mask = mask.cpu().numpy()
+        batch_opening = []
+        for i in range(prediction.shape[0]):  
+            pred_i = prediction[i, 0]  
+            opening_i = cv2.morphologyEx(pred_i.astype(np.uint8), cv2.MORPH_OPEN, kernel)
+            batch_opening.append(opening_i)
+
+        batch_opening = np.array(batch_opening)           
+        batch_opening = np.expand_dims(batch_opening, 1) 
 
         all_predictions.extend(prediction)
         all_masks.extend(mask)
