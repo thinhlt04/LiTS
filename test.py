@@ -8,6 +8,8 @@ import os
 import shutil
 import json
 import cv2
+from tqdm import tqdm
+import numpy as np
 
 def get_args():
     parser = ArgumentParser(description='train unet')
@@ -63,7 +65,7 @@ if __name__ == '__main__':
 
     kernel = np.ones((3,3), np.uint8)
 
-    for batch in test_loader:
+    for batch in tqdm(test_loader, desc="Testing", unit="batch"):
         image, mask = batch
         image = image.to(device)
         mask = mask.to(device)
@@ -82,10 +84,10 @@ if __name__ == '__main__':
         batch_opening = np.array(batch_opening)           
         batch_opening = np.expand_dims(batch_opening, 1) 
 
-        all_predictions.extend(prediction)
+        all_predictions.extend(batch_opening)
         all_masks.extend(mask)
 
-    scores = compute_scores(batch_opening, all_masks)
+    scores = compute_scores(all_predictions, all_masks)
     output_file = os.path.join(args.json_dir, f"scores_bce_{args.bce_weight}.json")
     with open(output_file, 'w') as f:
         json.dump(scores, f)
