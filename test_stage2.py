@@ -64,7 +64,7 @@ if __name__ == '__main__':
     all_target = []
     all_tumor_preds = []
 
-    kernel = np.ones((3, 3), np.uint8)
+    kernel = np.ones((5, 5), np.uint8)
 
     for batch in tqdm(test_loader, desc="Testing", unit="batch"):
         masked_image, masked_target, liver_mask, target = batch
