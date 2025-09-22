@@ -136,6 +136,7 @@ class LiTS_stage2(Dataset):
     def __getitem__(self, idx):
         image = sitk.ReadImage(self.images[idx])
         target = sitk.ReadImage(self.targets[idx])
+        liver_mask = sitk.ReadImage(self.liver_masks[idx])
 
         clamp_filter = sitk.ClampImageFilter()
         clamp_filter.SetLowerBound(self.lowerbound)
@@ -143,14 +144,14 @@ class LiTS_stage2(Dataset):
         clamped_image = clamp_filter.Execute(image)
         
 
-        liver_mask = sitk.ReadImage(self.liver_masks[idx])
+        
         masked_image = sitk.Mask(clamped_image, liver_mask, outsideValue=-1024)
         masked_target = sitk.Mask(target, liver_mask, outsideValue=0)
 
-        liver_mask = sitk.GetArrayFromImage(liver_mask)
-        masked_target = sitk.GetArrayFromImage(masked_target)
-        masked_image = sitk.GetArrayFromImage(masked_image)
-        target = sitk.GetArrayFromImage(target)
+        liver_mask = sitk.GetArrayFromImage(liver_mask).astype(np.uint8)
+        masked_target = sitk.GetArrayFromImage(masked_target).astype(np.uint8)
+        masked_image = sitk.GetArrayFromImage(masked_image).astype(np.float32)
+        target = sitk.GetArrayFromImage(target).astype(np.uint8)
 
         masked_target[masked_target == 2] = 0
         masked_target = masked_target.astype(np.float32)
