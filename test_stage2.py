@@ -64,6 +64,8 @@ if __name__ == '__main__':
     all_target = []
     all_tumor_preds = []
 
+    kernel1 = np.ones((3, 3), np.uint8)
+
     for batch in tqdm(test_loader, desc="Testing", unit="batch"):
         masked_image, masked_target, liver_mask, target = batch
         masked_image = masked_image.to(device)
@@ -73,8 +75,25 @@ if __name__ == '__main__':
         
         with torch.no_grad():
             pred = model(masked_image)
-            
+
         prediction = (pred > 0.5).long().cpu().numpy()
+        opened_preds = []
+        for p in prediction:  
+            # p shape = (1, h, w) → squeeze
+            p = p.squeeze(0).astype(np.uint8) * 255  
+
+            # opening
+            opened = cv2.morphologyEx(p, cv2.MORPH_OPEN, kernel1)
+
+            # đưa lại về (h, w) giá trị {0,1}
+            opened = (opened > 0).astype(np.uint8)
+            opened = np.expand_dims(opened, axis=0)
+            opened_preds.append(opened)
+
+        # stack lại
+        prediction = np.stack(opened_preds)
+            
+        
         masked_target = masked_target.cpu().numpy()
         target = target.cpu().numpy()
         liver_mask = liver_mask.cpu().numpy()
