@@ -87,7 +87,7 @@ if __name__ == '__main__':
         all_target.extend(target)
         
 
-    scores = compute_scores(all_predictions, all_predictions)
+    scores = compute_scores(all_predictions, all_masked_target)
     scores_stage2 = compute_scores(all_tumor_preds, all_target)
     results = {}
 
