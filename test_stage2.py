@@ -84,21 +84,21 @@ if __name__ == '__main__':
         
         tumor_pred = (liver_mask ^ prediction).astype(np.uint8)
         
-        opened_preds = []
-        for p in tumor_pred:  
-            # p shape = (1, h, w) → squeeze
-            p = p.squeeze(0)
+        # opened_preds = []
+        # for p in tumor_pred:  
+        #     # p shape = (1, h, w) → squeeze
+        #     p = p.squeeze(0)
 
-            # opening
-            opened = cv2.morphologyEx(p, cv2.MORPH_OPEN, kernel)
+        #     # opening
+        #     opened = cv2.morphologyEx(p, cv2.MORPH_OPEN, kernel)
 
-            # đưa lại về (h, w) giá trị {0,1}
-            opened = (opened > 0).astype(np.uint8)
-            opened = np.expand_dims(opened, axis=0)
-            opened_preds.append(opened)
+        #     # đưa lại về (h, w) giá trị {0,1}
+        #     opened = (opened > 0).astype(np.uint8)
+        #     opened = np.expand_dims(opened, axis=0)
+        #     opened_preds.append(opened)
 
-        # stack lại
-        tumor_pred = np.stack(opened_preds)
+        # # stack lại
+        # tumor_pred = np.stack(opened_preds)
 
         all_predictions.extend(prediction)
         all_masked_target.extend(masked_target)
