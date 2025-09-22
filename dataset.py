@@ -158,8 +158,8 @@ class LiTS_stage2(Dataset):
         target[target == 2] = 1
 
         if self.transform:
-            clamped_image = clamped_image.transpose(1, 2, 0)
-            clamped_image = self.transform(clamped_image)
+            masked_image = masked_image.transpose(1, 2, 0)
+            masked_image = self.transform(masked_image)
         if self.target_transform:
             masked_target = masked_target.transpose(1, 2, 0)
             masked_target = self.target_transform(masked_target)
