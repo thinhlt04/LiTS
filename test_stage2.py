@@ -64,7 +64,7 @@ if __name__ == '__main__':
     all_target = []
     all_tumor_preds = []
 
-    kernel1 = np.ones((3, 3), np.uint8)
+    kernel = np.ones((3, 3), np.uint8)
 
     for batch in tqdm(test_loader, desc="Testing", unit="batch"):
         masked_image, masked_target, liver_mask, target = batch
@@ -80,10 +80,10 @@ if __name__ == '__main__':
         opened_preds = []
         for p in prediction:  
             # p shape = (1, h, w) → squeeze
-            p = p.squeeze(0).astype(np.uint8) * 255  
+            p = p.squeeze(0)
 
             # opening
-            opened = cv2.morphologyEx(p, cv2.MORPH_OPEN, kernel1)
+            opened = cv2.morphologyEx(p, cv2.MORPH_OPEN, kernel)
 
             # đưa lại về (h, w) giá trị {0,1}
             opened = (opened > 0).astype(np.uint8)
