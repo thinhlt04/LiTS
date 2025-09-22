@@ -74,9 +74,9 @@ if __name__ == '__main__':
         with torch.no_grad():
             pred = model(masked_image)
             
-        prediction = (pred > 0.5).long().numpy()
-        masked_target = masked_target.numpy()
-        target = target.numpy()
+        prediction = (pred > 0.5).long().cpu().numpy()
+        masked_target = masked_target.cpu().numpy()
+        target = target.cpu().numpy()
         
         tumor_pred = liver_mask ^ prediction
         
