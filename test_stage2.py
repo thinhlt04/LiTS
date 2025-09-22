@@ -10,6 +10,7 @@ import json
 import cv2
 import numpy as np  
 from tqdm import tqdm
+import torch 
 
 def get_args():
     parser = ArgumentParser(description='train unet')
