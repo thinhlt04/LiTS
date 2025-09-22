@@ -76,9 +76,16 @@ if __name__ == '__main__':
         with torch.no_grad():
             pred = model(masked_image)
 
-        prediction = (pred > 0.5).long().cpu().numpy()
+        prediction = (pred > 0.5).long().cpu().numpy()         
+        
+        masked_target = masked_target.cpu().numpy()
+        target = target.cpu().numpy()
+        liver_mask = liver_mask.cpu().numpy()
+        
+        tumor_pred = (liver_mask ^ prediction).astype(np.uint8)
+        
         opened_preds = []
-        for p in prediction:  
+        for p in tumor_pred:  
             # p shape = (1, h, w) → squeeze
             p = p.squeeze(0)
 
@@ -91,15 +98,8 @@ if __name__ == '__main__':
             opened_preds.append(opened)
 
         # stack lại
-        prediction = np.stack(opened_preds)
-            
-        
-        masked_target = masked_target.cpu().numpy()
-        target = target.cpu().numpy()
-        liver_mask = liver_mask.cpu().numpy()
-        
-        tumor_pred = liver_mask ^ prediction
-        
+        tumor_pred = np.stack(opened_preds)
+
         all_predictions.extend(prediction)
         all_masked_target.extend(masked_target)
         all_tumor_preds.extend(tumor_pred)
