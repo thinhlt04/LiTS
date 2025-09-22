@@ -1,4 +1,4 @@
-from dataset import LiTS
+from dataset import *
 from model import Unet
 from argparse import ArgumentParser
 from torch.utils.data import DataLoader
@@ -21,7 +21,6 @@ def get_args():
     parser.add_argument('--lowerbound', '-lb', type=int, default=0)
     parser.add_argument('--upperbound', '-ub', type=int, default=100)
     parser.add_argument('--json_dir', '-jd', type=str, default=None)
-    parser.add_argument('--liver_mask', '-lm', type=bool, default=None)
     parser.add_argument("--bce_weight", "-bw", type=float, default=1.0)
     args = parser.parse_args()
     return args
@@ -36,14 +35,13 @@ if __name__ == '__main__':
     target_transform = Compose([
                     ToTensor()
                 ])
-    test_dataset = LiTS(
+    test_dataset = LiTS_stage2(
                     root=args.root, 
                     train=False, 
                     lowerbound=args.lowerbound,
                     upperbound=args.upperbound,
                     transform=transform, 
                     target_transform=target_transform, 
-                    liver_mask=args.liver_mask
                 )
     
     test_loader = DataLoader(
@@ -62,49 +60,34 @@ if __name__ == '__main__':
     model.to(device)
 
     all_predictions = []
-    all_masks = []
-    all_tumor_masks = []
+    all_masked_target = []
+    all_target = []
     all_tumor_preds = []
 
-    kernel = np.ones((3,3), np.uint8)
-
     for batch in tqdm(test_loader, desc="Testing", unit="batch"):
-        image, mask, liver_mask = batch
-        image = image.to(device)
-        mask = mask.to(device)
+        masked_image, masked_target, liver_mask, target = batch
+        masked_image = masked_image.to(device)
+        masked_target = masked_target.to(device)
         liver_mask = liver_mask.to(device)
+        target = target.to(device)
         
         with torch.no_grad():
-            pred = model(image)
+            pred = model(masked_image)
             
-        pred_bin = (pred > 0.5).long()
-        mask_bin = mask.long()
-        liver_mask_bin = liver_mask.long()
+        prediction = (pred > 0.5).long().numpy()
+        masked_target = masked_target.numpy()
+        target = target.numpy()
         
-        tumor_pred = liver_mask_bin ^ pred_bin
-        tumor_mask = liver_mask_bin ^ mask_bin
+        tumor_pred = liver_mask ^ prediction
         
-        prediction = pred_bin.cpu().numpy()
-        mask_np = mask_bin.cpu().numpy()
-        tumor_pred_np = tumor_pred.cpu().numpy()
-        tumor_mask_np = tumor_mask.cpu().numpy()
-        
-        batch_opening = []
-        for i in range(tumor_pred_np.shape[0]):  
-            pred_i = tumor_pred_np[i, 0]  
-            opening_i = cv2.morphologyEx(pred_i.astype(np.uint8), cv2.MORPH_OPEN, kernel)
-            batch_opening.append(opening_i)
-
-        batch_opening = np.array(batch_opening)           
-        batch_opening = np.expand_dims(batch_opening, 1)
-
         all_predictions.extend(prediction)
-        all_masks.extend(mask_np)
-        all_tumor_preds.extend(batch_opening)
-        all_tumor_masks.extend(tumor_mask_np)
+        all_masked_target.extend(masked_target)
+        all_tumor_preds.extend(tumor_pred)
+        all_target.extend(target)
+        
 
-    scores = compute_scores(all_predictions, all_masks)
-    scores_stage2 = compute_scores(all_tumor_preds, all_tumor_masks)
+    scores = compute_scores(all_predictions, all_predictions)
+    scores_stage2 = compute_scores(all_tumor_preds, all_target)
     results = {}
 
     for metric, value in scores.items():
@@ -112,6 +95,7 @@ if __name__ == '__main__':
 
     for metric, value in scores_stage2.items():
         results[f"score_stage2_{metric}"] = value
+
     output_file = os.path.join(args.json_dir, f"scores_bce_{args.bce_weight}.json")
     with open(output_file, 'w') as f:
         
