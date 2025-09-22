@@ -77,6 +77,7 @@ if __name__ == '__main__':
         prediction = (pred > 0.5).long().cpu().numpy()
         masked_target = masked_target.cpu().numpy()
         target = target.cpu().numpy()
+        liver_mask = liver_mask.cpu().numpy()
         
         tumor_pred = liver_mask ^ prediction
         
