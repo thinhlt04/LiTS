@@ -165,4 +165,4 @@ class LiTS_stage2(Dataset):
             masked_target = self.target_transform(masked_target)
         masked_target = (masked_target > 0).float()
 
-        return masked_image, masked_target, liver_mask, target
+        return masked_image.float(), masked_target, liver_mask, target
