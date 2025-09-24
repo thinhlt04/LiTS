@@ -170,8 +170,8 @@ class LiTS_stage2(Dataset):
         target[target == 2] = 1
 
         if self.transform:
-            masked_image = masked_image.transpose(1, 2, 0)
-            masked_image = self.transform(masked_image)
+            input = input.transpose(1, 2, 0)
+            input = self.transform(input)
         if self.target_transform:
             masked_target = masked_target.transpose(1, 2, 0)
             masked_target = self.target_transform(masked_target)
