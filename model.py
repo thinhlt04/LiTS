@@ -5,7 +5,7 @@ from module import *
 class Unet(nn.Module):
     def __init__(self):
         super().__init__()
-        self.encoder1 = encoder_block(block=conv_block,in_channels=1, num_filters=64)
+        self.encoder1 = encoder_block(block=conv_block,in_channels=3, num_filters=64)
         self.encoder2 = encoder_block(block=conv_block,in_channels=64, num_filters=128)
         self.encoder3 = encoder_block(block=conv_block,in_channels=128, num_filters=256)
         self.encoder4 = encoder_block(block=conv_block,in_channels=256, num_filters=512)

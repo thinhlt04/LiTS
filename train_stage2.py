@@ -91,26 +91,26 @@ if __name__ == "__main__":
     if args.checkpoint:
         checkpoint = torch.load(args.checkpoint, weights_only=False)
         start_epoch = checkpoint["epoch"]
-        best_dice = checkpoint["best_dice"]
+        best_iou = checkpoint["best_iou"]
         model.load_state_dict(checkpoint["model"])
         optimizer.load_state_dict(checkpoint["optimizer"])
         scheduler.load_state_dict(checkpoint["scheduler"])
     else:
         start_epoch = 0
-        best_dice = 0.0
+        best_iou = 0.0
 
     for epoch in range(start_epoch, args.epochs):
         model.train()
         process_bar = tqdm(train_loader, colour="cyan")
-        for iter, (images, masks, liver_mask, target) in enumerate(process_bar):
+        for iter, (input, masked_target, liver_mask, target) in enumerate(process_bar):
             if torch.cuda.is_available():
-                images = images.to(device)
-                masks = masks.to(device)
-
+                input = input.to(device)
+                masked_target = masked_target.to(device)
+ 
             # forward
-            outputs = model(images)
+            outputs = model(input)
             loss_value = bce_dice_loss(
-                outputs, masks, bce_weight=args.bce_weight, dice_weight=args.dice_weight
+                outputs, masked_target, bce_weight=args.bce_weight, dice_weight=args.dice_weight
             )
             process_bar.set_description(
                 f"Epochs {epoch + 1}/{args.epochs}. Iteration {iter + 1}/{num_iters}. Loss {loss_value:.3f}"
@@ -126,36 +126,36 @@ if __name__ == "__main__":
         all_masks = []
 
         for batch in dev_loader:
-            image, mask, liver_mask = batch
-            image = image.to(device)
-            mask = mask.to(device)
+            input, masked_target, liver_mask, target = batch
+            input = input.to(device)
+            masked_target = masked_target.to(device)
 
             with torch.no_grad():
-                pred = model(image)
+                pred = model(input)
 
             prediction = (pred > 0.5).long().cpu().numpy()
-            mask = mask.cpu().numpy()
+            masked_target = masked_target.cpu().numpy()
 
             all_predictions.extend(prediction)
-            all_masks.extend(mask)
+            all_masks.extend(masked_target)
         score = compute_scores(all_predictions, all_masks)
-        dice_score = score["dice"]
-        writer.add_scalar("Val/Dice", dice_score, epoch)
-        scheduler.step(dice_score)
+        iou_score = score["iou"]
+        writer.add_scalar("Val/IoU", iou_score, epoch)
+        scheduler.step(iou_score)
         checkpoint = {
             "epoch": epoch + 1,
-            "best_dice": best_dice,
+            "best_iou": best_iou,
             "model": model.state_dict(),
             "optimizer": optimizer.state_dict(),
             "scheduler": scheduler.state_dict(),
         }
         torch.save(checkpoint, f"{args.trained_models}/last_model.pt")
-        if dice_score > best_dice:
+        if iou_score > best_iou:
             checkpoint = {
                 "epoch": epoch + 1,
-                "best_dice": dice_score,
+                "best_iou": iou_score,
                 "model": model.state_dict(),
                 "optimizer": optimizer.state_dict(),
             }
             torch.save(checkpoint, f"{args.trained_models}/best_model.pt")
-            best_dice = dice_score
+            best_iou = iou_score

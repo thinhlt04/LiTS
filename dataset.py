@@ -3,6 +3,7 @@ from torch.utils.data import Dataset, DataLoader
 import os
 import SimpleITK as sitk
 import numpy as np
+import cv2
 
 
 class LiTS(Dataset):
@@ -24,7 +25,7 @@ class LiTS(Dataset):
         self.targets = []
         self.lowerbound = lowerbound
         self.upperbound = upperbound
-        self.liver_mask = liver_mask 
+
         if train:
             root = os.path.join(root, "train")
         elif dev:
@@ -102,7 +103,6 @@ class LiTS_stage2(Dataset):
         self.images = []
         self.targets = []
         self.liver_masks = []
-
         self.lowerbound = lowerbound
         self.upperbound = upperbound
 
@@ -153,6 +153,17 @@ class LiTS_stage2(Dataset):
         masked_image = sitk.GetArrayFromImage(masked_image).astype(np.float32)
         target = sitk.GetArrayFromImage(target).astype(np.uint8)
 
+        img = masked_image[0]  
+
+        blur = cv2.GaussianBlur(img, (5,5), 0)
+        unsharp_mask = cv2.addWeighted(img, 1+3.0, blur, -3.0, 0)
+
+        sobel_x = cv2.Sobel(img, cv2.CV_64F, 1, 0, ksize=3)
+        sobel_y = cv2.Sobel(img, cv2.CV_64F, 0, 1, ksize=3)
+        sobel_mask = cv2.magnitude(sobel_x, sobel_y)
+
+        input = np.stack([img, unsharp_mask, sobel_mask], axis=0)
+
         masked_target[masked_target == 2] = 0
         masked_target = masked_target.astype(np.float32)
         target[target == 1] = 0
@@ -166,4 +177,4 @@ class LiTS_stage2(Dataset):
             masked_target = self.target_transform(masked_target)
         masked_target = (masked_target > 0).float()
 
-        return masked_image.float(), masked_target, liver_mask, target
+        return input.float(), masked_target, liver_mask, target
