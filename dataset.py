@@ -153,16 +153,16 @@ class LiTS_stage2(Dataset):
         masked_image = sitk.GetArrayFromImage(masked_image).astype(np.float32)
         target = sitk.GetArrayFromImage(target).astype(np.uint8)
 
-        img = masked_image[0]  
+        # img = masked_image[0]  
 
-        blur = cv2.GaussianBlur(img, (5,5), 0)
-        unsharp_mask = cv2.addWeighted(img, 1+3.0, blur, -3.0, 0)
+        # blur = cv2.GaussianBlur(img, (5,5), 0)
+        # unsharp_mask = cv2.addWeighted(img, 1+3.0, blur, -3.0, 0)
 
-        sobel_x = cv2.Sobel(img, cv2.CV_64F, 1, 0, ksize=3)
-        sobel_y = cv2.Sobel(img, cv2.CV_64F, 0, 1, ksize=3)
-        sobel_mask = cv2.magnitude(sobel_x, sobel_y)
+        # sobel_x = cv2.Sobel(img, cv2.CV_64F, 1, 0, ksize=3)
+        # sobel_y = cv2.Sobel(img, cv2.CV_64F, 0, 1, ksize=3)
+        # sobel_mask = cv2.magnitude(sobel_x, sobel_y)
 
-        input = np.stack([img, unsharp_mask, sobel_mask], axis=0)
+        # input = np.stack([img, unsharp_mask, sobel_mask], axis=0)
 
         masked_target[masked_target == 2] = 0
         masked_target = masked_target.astype(np.float32)
@@ -170,11 +170,11 @@ class LiTS_stage2(Dataset):
         target[target == 2] = 1
 
         if self.transform:
-            input = input.transpose(1, 2, 0)
-            input = self.transform(input)
+            masked_image = masked_image.transpose(1, 2, 0)
+            masked_image = self.transform(masked_image)
         if self.target_transform:
             masked_target = masked_target.transpose(1, 2, 0)
             masked_target = self.target_transform(masked_target)
         masked_target = (masked_target > 0).float()
 
-        return input.float(), masked_target, liver_mask, target
+        return masked_image.float(), masked_target, liver_mask, target
